@@ -1,62 +1,80 @@
 //your JS code here. If required.
-//your JS code here. If required.
-document.addEventListener('DOMContentLoaded', function() {
-    const player1Input = document.getElementById('player-1');
-    const player2Input = document.getElementById('player-2');
-    const submitButton = document.getElementById('submit');
-    const messageDiv = document.querySelector('.message');
-    const boardDiv = document.querySelector('.board');
+const playerForm = document.getElementById('playerForm');
+        const player1 = document.getElementById('player1');
+        const player2 = document.getElementById('player2');
+        const startBtn = document.getElementById('submit');
+        const gameBoard = document.getElementById('gameBoard');
+        const messageDiv = document.querySelector('.message');
+        const cells = document.querySelectorAll('.grid-item')
+        
+        let currentPlayer = 'x';
+        let player1Name = '';
+        let player2Name = '';
+        let board = ['', '', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
 
-    let currentPlayer = 'X'; // X represents player 1, O represents player 2
+        startBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            player1Name = player1.value;
+            player2Name = player2.value;
 
-    submitButton.addEventListener('click', function() {
-        const player1Name = player1Input.value;
-        const player2Name = player2Input.value;
-        // Validate player names
-        if (player1Name && player2Name) {
-            // Display the game board
-            displayBoard();
-            // Display message for player 1's turn
-            showMessage(`${player1Name}, you're up!`);
-        } else {
-            alert('Please enter names for both players.');
-        }
-    });
+            if(player1Name && player2Name){
+             gameBoard.style.display = 'block';
+             playerForm.style.display = 'none';
+             messageDiv.textContent = `${player1Name}, you're up!`;
+            
+            }
+        });
 
-    function displayBoard() {
-        for (let i = 1; i <= 9; i++) {
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            cell.id = i;
-            cell.addEventListener('click', function() {
-                if (!this.textContent) {
-                    this.textContent = currentPlayer;
-                    checkWinner();
-                    togglePlayer();
+        cells.forEach(cell => {
+            cell.addEventListener('click', function(){
+                const cellIdx = parseInt(cell.id) - 1;
+
+                if(board[cellIdx] == '' && gameActive){
+                    board[cellIdx] = currentPlayer;
+                    cell.textContent = currentPlayer;
+
+                    if(checkWin()){
+                       messageDiv.textContent = `${currentPlayer == 'x' ? player1Name : player2Name} congratulations you won!`;
+                        messageDiv.style.color ='Green';
+						gameActive = false;
+                        return;
+                    }
+
+                    if(checkDraw()){
+                        messageDiv.textContent = 'It\'s a draw!';
+                        gameActive = false;
+                        return;
+                    }
+
+                    currentPlayer = currentPlayer == 'x' ? 'o' : 'x';
+                    messageDiv.textContent = `${currentPlayer == 'x' ? player1Name : player2Name}, you're up!`;
+
                 }
             });
-            boardDiv.appendChild(cell);
-        }
-    }
+        });
 
-    function checkWinner() {
-        const winningCombinations = [
-            [1, 2, 3], [4, 5, 6], [7, 8, 9], // Horizontal
-            [1, 4, 7], [2, 5, 8], [3, 6, 9], // Vertical
-            [1, 5, 9], [3, 5, 7] // Diagonal
-        ];
-        for (const combo of winningCombinations) {
-            const [a, b, c] = combo;
-            if (
-                document.getElementById(a).textContent &&
-                document.getElementById(a).textContent === document.getElementById(b).textContent &&
-                document.getElementById(b).textContent === document.getElementById(c).textContent
-            ) {
-                const winner = currentPlayer === 'X' ? player1Input.value : player2Input.value;
-                showMessage(`${winner} congratulations you won!`);
-                return;
-            }
+        function checkWin (){
+            const winConditions = [
+                [0,1,2],
+                [3,4,5],
+                [6,7,8],
+                [0,3,6],
+                [1,4,7],
+                [2,5,8],
+                [0,4,8],
+                [2,4,6]
+            ];
+
+            return winConditions.some(condition => {
+                return condition.every(index => {
+                    return board[index] == currentPlayer;
+                });
+            });
         }
-        // Check for draw
-        const cells = document.querySelectorAll('.cell');
-        if ([...cells].every(cell => cell.textContent)) {
+
+        function checkDraw(){
+            return board.every (cell => {
+                return cell != '';
+            });
+        }
